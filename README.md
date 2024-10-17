@@ -38,7 +38,11 @@ Develop a real-time smart parking system that helps users find available parking
 # Reservation Management
   _Base Class_
   1) ParkingSpot
+
+
   _Derived Class_
+
+  
   1) CompactSpot
   2) LargeSpot
   3) ElectricSpot
@@ -56,7 +60,10 @@ Develop a real-time smart parking system that helps users find available parking
   _Base class_
   1) Price chart
   2) Entry exit time
+
+
   _Derived class_
+  
   1) Calculation for payment
 
   _Attributes_
