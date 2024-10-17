@@ -1,0 +1,5 @@
+1 hour- Rs. 20
+2 hours- Rs. 35
+5 hours- Rs. 80
+12 hours- Rs. 210
+24 hours- Rs. 400
