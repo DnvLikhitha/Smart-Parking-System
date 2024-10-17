@@ -116,3 +116,14 @@ Develop a real-time smart parking system that helps users find available parking
     Exit Time
     Aprox amount
     recipt id
+
+
+# Flow Diagram
+
+![Smart Parking System](https://github.com/user-attachments/assets/aa7dafd3-a4ca-4160-84ed-3b1e2571666b)
+
+
+
+
+
+![Smart Parking System (1)](https://github.com/user-attachments/assets/bcfddd78-b1b2-4ab4-9c3b-88596d5ae91c)
