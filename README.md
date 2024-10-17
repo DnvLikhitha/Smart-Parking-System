@@ -79,11 +79,11 @@ Develop a real-time smart parking system that helps users find available parking
 
 
 # login
-  1) owner Login
+  1) Owner Login
   2) User login
 
 
-# owner login
+# Owner login
 
   _Register_
   
