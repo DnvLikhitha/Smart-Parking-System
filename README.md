@@ -71,3 +71,48 @@ Develop a real-time smart parking system that helps users find available parking
   2) Costomer Id [Entry]
   3) Print the recipt [Entry](Entry time and parking slot number)
   4) Move to new costomer [Exit]
+
+
+
+
+
+
+
+# login
+  1) Ownner Login
+  2) User login
+
+
+# Ownner login
+
+  _Register_
+  
+      How many total lots are available
+      Compact vehicle
+      Heavy vehicles
+      Electric parking
+      Disable parking
+      
+  _login_
+  
+    Todays income
+    Monthly income
+    Entry
+
+
+# User login
+
+  _Register_
+  
+      Name
+      Vehicle number
+      Vehicle type
+      Mobile number
+      
+  _login_
+  
+    parking spot
+    Entry Time
+    Exit Time
+    Aprox amount
+    recipt id
