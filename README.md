@@ -67,7 +67,7 @@ Develop a real-time smart parking system that helps users find available parking
   1) Calculation for payment
 
   _Attributes_
-  1) Is payment done(Yes no type)
-  2) Costomer Id
-  3) Print the recipt
-  4) Move to new costomer
+  1) Is payment done(Yes no type) [Exit]
+  2) Costomer Id [Entry]
+  3) Print the recipt [Entry](Entry time and parking slot number)
+  4) Move to new costomer [Exit]
