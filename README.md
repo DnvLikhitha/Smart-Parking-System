@@ -44,9 +44,10 @@ Develop a real-time smart parking system that helps users find available parking
 
   
   1) CompactSpot
-  2) LargeSpot
-  3) ElectricSpot
-  4) disabledSpot
+  2) SmallSpot
+  3) LargeSpot
+  4) ElectricSpot
+  5) disabledSpot
 
 
   _Attributes_
