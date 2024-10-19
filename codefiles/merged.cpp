@@ -10,6 +10,7 @@
 #include <windows.h>
 #include <conio.h>
 #include <string>
+#include <memory>
 
 using namespace std;
 using namespace std::chrono;
@@ -30,21 +31,17 @@ public:
         hour = localTime->tm_hour;
         minute = localTime->tm_min;
         second = localTime->tm_sec;
+    }
 
-        cout << "Current date: " << year << "-" << month << "-" << day << endl;
-        cout << "Current time: " << hour << ":" << minute << ":" << second << endl;
+    void print() const {
+        cout << year << "-" << setw(2) << setfill('0') << month << "-";
+        cout << setw(2) << setfill('0') << day << " " << setw(2) << setfill('0');
+        cout << hour << ":" << setw(2) << setfill('0') << minute << ":" << setw(2) << setfill('0') << second << endl;
     }
 
     int getHour() const { return hour; }
     int getDay() const { return day; }
     int getMonth() const { return month; }
-
-    void print() const {
-        cout << year << "-" << setw(2) << setfill('0') << month << "-"
-             << setw(2) << setfill('0') << day << " " << setw(2) << setfill('0')
-             << hour << ":" << setw(2) << setfill('0') << minute << ":"
-             << setw(2) << setfill('0') << second << endl;
-    }
 };
 
 class Calculate {
@@ -69,13 +66,6 @@ public:
 
     int getHourDiff() const { return d_hour; }
     int getDayDiff() const { return d_day; }
-    int getMonthDiff() const { return d_month; }
-
-    void print() const {
-        cout << "Hours: " << d_hour << endl;
-        cout << "Days: " << d_day << endl;
-        cout << "Months: " << d_month << endl;
-    }
 };
 
 class Reserve_Time {
@@ -84,32 +74,30 @@ protected:
 
 public:
     Reserve_Time() {
-        vehicle_rates.push_back(make_pair("Two-wheeler", vector<int>{20, 450, 4500, 210}));
-        vehicle_rates.push_back(make_pair("Four-wheeler", vector<int>{30, 500, 5000, 210}));
-        vehicle_rates.push_back(make_pair("Bus/Other", vector<int>{35, 700, 7000, 210}));
+        vehicle_rates.push_back(make_pair("Two-wheeler", vector<int>{20, 450}));
+        vehicle_rates.push_back(make_pair("Four-wheeler", vector<int>{30, 500}));
+        vehicle_rates.push_back(make_pair("Bus/Other", vector<int>{35, 700}));
     }
 
-    int price(int type, int h, int d, int& revenue) { 
-    vector<int> rates;
-    switch (type) {
-        case 2:
-            rates = vehicle_rates[0].second; 
-            break;
-        case 4:
-            rates = vehicle_rates[1].second;  
-            break;
-        case 0:
-            rates = vehicle_rates[2].second;  
-            break;
-        default:
-            throw invalid_argument("Invalid vehicle type entered.");
+    int price(int type, int h, int d) { 
+        vector<int> rates;
+        switch (type) {
+            case 2:
+                rates = vehicle_rates[0].second; 
+                break;
+            case 4:
+                rates = vehicle_rates[1].second;  
+                break;
+            case 0:
+                rates = vehicle_rates[2].second;  
+                break;
+            default:
+                throw invalid_argument("Invalid vehicle type entered.");
+        }
+
+        int cost = h * rates[0] + d * rates[1];  
+        return cost;
     }
-
-    int cost = h * rates[0] + d * rates[1];  
-    revenue += cost;  \
-    return cost;
-}
-
 
     string getVehicleType(int type) const {
         switch (type) {
@@ -134,10 +122,7 @@ public:
         entry_note new_entry;
         new_entry.v_no = vehicle_no;
         new_entry.entry_time = time;
-
         entries.push_back(new_entry);
-
-        cout << "Entry added for vehicle: " << vehicle_no << endl;
     }
 
     Time get_entry_time(const string& vehicle_no) const {
@@ -147,18 +132,6 @@ public:
             }
         }
         throw invalid_argument("Vehicle not found.");
-    }
-
-    void display_entries() const {
-        if (entries.empty()) {
-            cout << "No entries to display!" << endl;
-            return;
-        }
-
-        for (const auto& entry : entries) {
-            cout << "Vehicle No: " << entry.v_no << " | Entry time: ";
-            entry.entry_time.print();
-        }
     }
 };
 
@@ -185,8 +158,8 @@ public:
 
 class U_login {
     string name;
-    string vno;  // Vehicle number
-    int v_type, pc;  // Vehicle type and parking choice
+    string vno;  
+    int v_type;  
     long mobile;
 
 public:
@@ -198,35 +171,25 @@ public:
         cin.ignore();
         cout << "Enter your vehicle number: ";
         getline(cin, vno);
-        cout << "1. Two-wheeler\n2. Four-wheeler\n3. Electric\n4. Others\nEnter your vehicle type: ";
+        cout << "1. Two-wheeler\n2. Four-wheeler\n3. Others\nEnter your vehicle type: ";
         cin >> v_type;
-        cin.ignore();
-        cout << "1. Temple\n2. Mall\n3. Park\nEnter your parking location choice: ";
-        cin >> pc;
         cin.ignore();
     }
 
     int getVehicleType() const {
         switch (v_type) {
-            case 1: return 2;  // Two-wheeler
-            case 2: return 4;  // Four-wheeler
-            case 3: return 0;  // Electric/Others
-            case 4: return 0;  // Others
-            default: return -1;  // Invalid type
+            case 1: return 2;  
+            case 2: return 4;  
+            case 3: return 0;  
+            default: return -1;  
         }
     }
 
     string getVehicleNo() const { return vno; }
-
-    void printDetails() const {
-        cout << "\nUser: " << name << " | Mobile: " << mobile << " | Vehicle No: " << vno << "\n";
-    }
 };
 
 class O_login {
     string stored, entered;
-    string vno;  // Vehicle number
-    int v_type, pc;  // Vehicle type and parking choice
     char temp[10];
     char c;
 
@@ -257,49 +220,36 @@ public:
         temp[i] = '\0';
 
         if (stored == temp) {
-            cout << "\nLogin Sucessful\n";
+            cout << "\nLogin Successful\n";
         } else {
             cout << "Incorrect password. Try again.\n";
         }
     }
-
-    int getVehicleType() const {
-        switch (v_type) {
-            case 1: return 2;  // Two-wheeler
-            case 2: return 4;  // Four-wheeler
-            case 3: return 0;  // Electric/Others
-            case 4: return 0;  // Others
-            default: return -1;  // Invalid type
-        }
-    }
-
-    string getVehicleNo() const { return vno; }
 };
 
 class O_book{
-    
-    public:
-        int day,hour;
-        O_book(){
-            cout<<"Enter number of days: ";
-            cin>>day;
-            cout<<"Enter number of hours: ";
-            cin>>hour;
-        }
+public:
+    int day, hour;
+    O_book() {
+        cout << "Enter number of days: ";
+        cin >> day;
+        cout << "Enter number of hours: ";
+        cin >> hour;
+    }
 
-        int amt(){
-            int price=hour*40+day*1000;
-            return price;
-        }
+    int amt() {
+        return hour * 40 + day * 1000;
+    }
 };
 
 int main() {
     Reserve_Time parkingRates;
     Note parkingNote;
-    int revenue=0;
+    int revenue = 0;
+
     while (true) {
         int userType;
-        cout << "Select login type:\n1. User Login\n2. Owner Login\nEnter choice: ";
+        cout << "Select login type:\n1. User Login\n2. Owner Login\n3. Exit\nEnter choice: ";
         cin >> userType;
         cin.ignore();
 
@@ -310,39 +260,53 @@ int main() {
             parkingNote.add_entry(user.getVehicleNo(), entry);
 
             cout << "\nAfter parking is complete, press any key to exit.\n";
-            system("pause");
+            getch();
 
             Time exit;
             exit.setCurrentTime();
 
             Calculate duration(parkingNote.get_entry_time(user.getVehicleNo()), exit);
             int vehicleType = user.getVehicleType();
-            int cost = parkingRates.price(vehicleType, duration.getHourDiff(), duration.getDayDiff(),revenue);
-            revenue+=cost;
+            int cost = parkingRates.price(vehicleType, duration.getHourDiff(), duration.getDayDiff());
+            revenue += cost;
+
             Receipt receipt(user.getVehicleNo(), parkingRates.getVehicleType(vehicleType),duration.getHourDiff(), duration.getDayDiff(), cost);
             receipt.printReceipt();
-        } else if (userType == 2) {
+        } 
+        else if (userType == 2) {
+            int t=0;
             O_login owner;
-            int t;
-            cout<<"\n1. Book\n2. Revenue\nWhat do you want to do: ";
-            cin>>t;
-            switch(t) {
+            while(t==0){
+            int choice;
+            cout << "\n1. Book\n2. Revenue\n3. Exit\nWhat do you want to do: ";
+            cin >> choice;
+            switch (choice) {
                 case 1: {
                     O_book book;
                     int cost = book.amt();
-                    cost+=revenue;
-                    Receipt receipt(owner.getVehicleNo(), "Offline", book.hour, book.day, cost);
+                    revenue += cost;
+                    string v_no;
+                    cout<<"Enter the vehicle number: ";
+                    cin>>v_no;
+                    Receipt receipt(v_no, "Offline", book.hour, book.day, cost);
                     receipt.printReceipt();
                     break;
                 }
                 case 2: {
-                    cout << "The total revenue is: " << revenue << "\n";
+                    cout << "The total revenue is: Rs. " << revenue << "\n";
+                    break;
+                }
+                case 3:{
+                    t=1;
                     break;
                 }
                 default:
                     cout << "Invalid option.\n";
             }
-    }else {
+            }
+        } else if(userType == 3){
+            return 0;
+        } else {
             cout << "Invalid login type entered.\n";
         }
 
@@ -352,7 +316,5 @@ int main() {
         if (exit_choice == 1) {
             break;
         }
-
-    
     }
 }
