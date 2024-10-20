@@ -193,7 +193,7 @@ for(int i=0;i<p.size();++i)
 }
 cout<<p[0]->isSuitable("Two-wheeler");
 int pAvailable=spotid;//keeping up with number of vacant spots
-while(pAvailable<= 0.1*spotid)
+while(pAvailable>= 0.1*spotid)
 {
     string vtype;//their vechicle type
     //searching 
