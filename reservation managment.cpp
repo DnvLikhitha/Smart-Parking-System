@@ -48,7 +48,7 @@ class parkingspot {
         }
         cout<<"Would you like to book spot number "<<id<<"?"<<endl;
         cin>>Ans;
-        if(Ans.compare("Yes"))
+        if(Ans.compare("Yes")==0)
         {
             cout<<"Reservation complete"<<endl;
             isAvailable=false;
@@ -114,7 +114,7 @@ class disabled:public parkingspot{
     bool isSuitable (string Vtype) override
     {
         string ans;
-        cout<<"Are you carrying a disabled person?/n Yes or No"<<endl;
+        cout<<"Are you carrying a disabled person?\n Yes or No"<<endl;
         cin>>ans;
         if(ans=="Yes")
         return true;
