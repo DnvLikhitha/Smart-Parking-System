@@ -134,7 +134,7 @@ int main() {
         }  else if (userType == 2) {
             O_login owner;
 avail AVAILABLE(spots);
-
+ofstream revi("revenue.txt");
 if (value == true) {
     int t;
     bool active = true;
@@ -158,7 +158,14 @@ if (value == true) {
             case 2:
                 // Display total revenue
                 cout << "The total revenue is: " << owner.loadTotalRevenue() << "\n";
-                cout<<"Do you want to make revenue 0?(1-Yes/0-No)";
+                cout<<"Do you want to make revenue 0?(1-Yes/0-No): ";
+                int temp;
+                cin>>temp;
+                if(temp==1){
+                revi<<0;
+                revi.close();
+                cout<<"Revenue set to 0";
+                }
                 break;
             case 3:
                 // Show availability of parking spots
