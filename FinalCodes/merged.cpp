@@ -403,7 +403,7 @@ class U_login {
     string name;
     string vno;  // Vehicle number
     int v_type, pc;  // Vehicle type and parking choice
-    long mobile;
+    long long mobile;
 
 public:
     string loc;
