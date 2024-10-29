@@ -52,7 +52,6 @@ int main() {
 
         if (userType == 1) {
             if (value == true) {
-                // Get spot preference before user details
                 int spotChoice;
                 cout << "Select the type of spot you need:\n";
                 cout << "1) Regular\n2) Electric\n3) Disabled\nEnter choice: ";
@@ -134,7 +133,6 @@ int main() {
         }  else if (userType == 2) {
             O_login owner;
 avail AVAILABLE(spots);
-ofstream revi("revenue.txt");
 if (value == true) {
     int t;
     bool active = true;
@@ -143,11 +141,10 @@ if (value == true) {
         cin >> t;
         switch (t) {
             case 1: {
-                O_book book(spots, AVAILABLE);  // Pass BOTH spots and AVAILABLE
+                O_book book(spots, AVAILABLE);  
                 
-                // Generate booking cost and receipt
                 int cost = book.amt();
-                revenue += cost;  // Update revenue
+                revenue += cost; 
                 srand(static_cast<unsigned int>(time(0)));
                 int referenceNumber = rand() % 100000 + 1;
                 Receipt receipt(book.vehicle, book.selectedVehicleType, book.hour, 
@@ -156,26 +153,31 @@ if (value == true) {
                 break;
             }
             case 2:
-                // Display total revenue
                 cout << "The total revenue is: " << owner.loadTotalRevenue() << "\n";
-                cout<<"Do you want to make revenue 0?(1-Yes/0-No): ";
+                cout << "Do you want to make revenue 0? (1-Yes / 0-No): ";
                 int temp;
-                cin>>temp;
-                if(temp==1){
-                revi<<0;
-                revi.close();
-                cout<<"Revenue set to 0";
+                cin >> temp;
+                if (temp == 1) {
+                    ofstream revi("revenue.txt", ios::out);
+                    if (revi.is_open()) {
+                        revi << "0";
+                        revi.close();
+                        revenue = 0;
+                        cout << "Revenue set to 0.\n";
+                    } else {
+                        cout << "Error opening revenue file.\n";
+                    }
                 }
-                break;
+            break;
             case 3:
-                // Show availability of parking spots
+                
                 AVAILABLE.check();
                 break;
             case 4:
                 change_pass.update();
                 break;
             case 5:
-                // Exit loop
+                
                 active = false;
                 break;
             default:
