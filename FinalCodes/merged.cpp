@@ -41,17 +41,13 @@ public:
     int getSpotid() { return id; }
     bool check_availability() { return isAvailable; }
     void reservation(string vtype, bool disabledAnswer = false) {
-        string Ans;
         if (!check_availability()) {
-            cout << "Spot not available" << endl;
-            return;
+            throw runtime_error("Spot not available.");
         }
         if (!isSuitable(vtype, disabledAnswer)) {
-            cout << "Spot not suitable" << endl;
-            return;
+            throw runtime_error("Spot not suitable for the vehicle type.");
         }
-        cout << "Booking spot for "<< id << ": ";
-        
+        cout << "Booking spot for " << id << ": ";
     }
 };
 
@@ -82,10 +78,7 @@ public:
 class disabled : public parkingspot {
 public:
     disabled(int spotid, string place) : parkingspot(spotid, "Disabled", place) {}
-
-    bool isSuitable(string Vtype, bool disabledAnswer) override {
-        return disabledAnswer;
-    }
+    bool isSuitable(string Vtype, bool disabledAnswer) override { return disabledAnswer; }
 };
 
 class avail {
@@ -95,70 +88,92 @@ public:
     int P_Compact, P_Four, P_Large, P_Electric, P_Disabled;
 
     avail(vector<unique_ptr<parkingspot>>& spots) {
-        ifstream inFile("spots.txt");
-        int spotId;
-        string type, locality;
-
-        // Initialize counters to 0
-        M_Compact = M_Four = M_Large = M_Electric = M_Disabled = 0;
-        T_Compact = T_Four = T_Large = T_Electric = T_Disabled = 0;
-        P_Compact = P_Four = P_Large = P_Electric = P_Disabled = 0;
-
-        // Read configuration from file and set up parking spots
-        while (inFile >> spotId >> type >> locality) {
-            if (type == "small") {
-                if (locality == "Mall") M_Compact++;
-                if (locality == "Temple") T_Compact++;
-                if (locality == "Park") P_Compact++;
-                spots.push_back(make_unique<small>(spotId, locality));
-            } else if (type == "compact") {
-                if (locality == "Mall") M_Four++;
-                if (locality == "Temple") T_Four++;
-                if (locality == "Park") P_Four++;
-                spots.push_back(make_unique<compact>(spotId, locality));
-            } else if (type == "large") {
-                if (locality == "Mall") M_Large++;
-                if (locality == "Temple") T_Large++;
-                if (locality == "Park") P_Large++;
-                spots.push_back(make_unique<large>(spotId, locality));
-            } else if (type == "electric") {
-                if (locality == "Mall") M_Electric++;
-                if (locality == "Temple") T_Electric++;
-                if (locality == "Park") P_Electric++;
-                spots.push_back(make_unique<electric>(spotId, locality));
-            } else if (type == "disabled") {
-                if (locality == "Mall") M_Disabled++;
-                if (locality == "Temple") T_Disabled++;
-                if (locality == "Park") P_Disabled++;
-                spots.push_back(make_unique<disabled>(spotId, locality));
+        try {
+            ifstream inFile("spots.txt");
+            if (!inFile) {
+                throw runtime_error("Unable to open spots configuration file.");
             }
+
+            int spotId;
+            string type, locality;
+
+            M_Compact = M_Four = M_Large = M_Electric = M_Disabled = 0;
+            T_Compact = T_Four = T_Large = T_Electric = T_Disabled = 0;
+            P_Compact = P_Four = P_Large = P_Electric = P_Disabled = 0;
+
+            while (inFile >> spotId >> type >> locality) {
+                try {
+                    if (type == "small") {
+                        if (locality == "Mall") M_Compact++;
+                        if (locality == "Temple") T_Compact++;
+                        if (locality == "Park") P_Compact++;
+                        spots.push_back(make_unique<small>(spotId, locality));
+                    } else if (type == "compact") {
+                        if (locality == "Mall") M_Four++;
+                        if (locality == "Temple") T_Four++;
+                        if (locality == "Park") P_Four++;
+                        spots.push_back(make_unique<compact>(spotId, locality));
+                    } else if (type == "large") {
+                        if (locality == "Mall") M_Large++;
+                        if (locality == "Temple") T_Large++;
+                        if (locality == "Park") P_Large++;
+                        spots.push_back(make_unique<large>(spotId, locality));
+                    } else if (type == "electric") {
+                        if (locality == "Mall") M_Electric++;
+                        if (locality == "Temple") T_Electric++;
+                        if (locality == "Park") P_Electric++;
+                        spots.push_back(make_unique<electric>(spotId, locality));
+                    } else if (type == "disabled") {
+                        if (locality == "Mall") M_Disabled++;
+                        if (locality == "Temple") T_Disabled++;
+                        if (locality == "Park") P_Disabled++;
+                        spots.push_back(make_unique<disabled>(spotId, locality));
+                    } else {
+                        throw invalid_argument("Invalid spot type in configuration file.");
+                    }
+                } catch (const invalid_argument& e) {
+                    cerr << "Error parsing spot configuration: " << e.what() << endl;
+                }
+            }
+            inFile.close();
+        } catch (const runtime_error& e) {
+            cerr << "Error: " << e.what() << endl;
         }
-        inFile.close();
     }
 
     void decrementAvailableCount(const string& spotType, const string& locality) {
+    try {
         if (locality == "Mall") {
-            if (spotType == "Compact") M_Compact--;
-            else if (spotType == "Four") M_Four--;
-            else if (spotType == "Large") M_Large--;
-            else if (spotType == "Electric") M_Electric--;
-            else if (spotType == "Disabled") M_Disabled--;
+            if (spotType == "Compact" && M_Compact > 0) M_Compact--;
+            else if (spotType == "Four" && M_Four > 0) M_Four--;
+            else if (spotType == "Large" && M_Large > 0) M_Large--;
+            else if (spotType == "Electric" && M_Electric > 0) M_Electric--;
+            else if (spotType == "Disabled" && M_Disabled > 0) M_Disabled--;
+            else throw runtime_error("Invalid decrement request for Mall.");
         } else if (locality == "Temple") {
-            if (spotType == "Compact") T_Compact--;
-            else if (spotType == "Four") T_Four--;
-            else if (spotType == "Large") T_Large--;
-            else if (spotType == "Electric") T_Electric--;
-            else if (spotType == "Disabled") T_Disabled--;
+            if (spotType == "Compact" && T_Compact > 0) T_Compact--;
+            else if (spotType == "Four" && T_Four > 0) T_Four--;
+            else if (spotType == "Large" && T_Large > 0) T_Large--;
+            else if (spotType == "Electric" && T_Electric > 0) T_Electric--;
+            else if (spotType == "Disabled" && T_Disabled > 0) T_Disabled--;
+            else throw runtime_error("Invalid decrement request for Temple.");
         } else if (locality == "Park") {
-            if (spotType == "Compact") P_Compact--;
-            else if (spotType == "Four") P_Four--;
-            else if (spotType == "Large") P_Large--;
-            else if (spotType == "Electric") P_Electric--;
-            else if (spotType == "Disabled") P_Disabled--;
+            if (spotType == "Compact" && P_Compact > 0) P_Compact--;
+            else if (spotType == "Four" && P_Four > 0) P_Four--;
+            else if (spotType == "Large" && P_Large > 0) P_Large--;
+            else if (spotType == "Electric" && P_Electric > 0) P_Electric--;
+            else if (spotType == "Disabled" && P_Disabled > 0) P_Disabled--;
+            else throw runtime_error("Invalid decrement request for Park.");
+        } else {
+            throw invalid_argument("Invalid locality.");
         }
+    } catch (const exception& e) {
+        cerr << "Error in decrementAvailableCount: " << e.what() << endl;
     }
+}
 
-    void check() const {
+void check() const {
+    try {
         cout << "\nParking Details: " << endl;
         cout << "\n-------------------------";
         cout << "\nMall Parking details: " << endl;
@@ -176,32 +191,42 @@ public:
              << "\nLarge: " << T_Large << "\nElectric: " << T_Electric
              << "\nDisabled: " << T_Disabled;
         cout << "\n-------------------------\n\n\n";
+    } catch (const exception& e) {
+        cerr << "Error in check: " << e.what() << endl;
     }
-    int id(const string& spotType, const string& locality) {
-    srand(static_cast<unsigned int>(time(0))); // Seed the random number generator
+}
 
-    if (locality == "Mall") {
-        if (spotType == "Compact" && M_Compact > 0) return 1 + (rand() % M_Compact);
-        else if (spotType == "Four-wheeler" && M_Four > 0) return 1 + (rand() % M_Four);
-        else if (spotType == "Large" && M_Large > 0) return 1 + (rand() % M_Large);
-        else if (spotType == "Electric" && M_Electric > 0) return 1 + (rand() % M_Electric);
-        else if (spotType == "Disabled" && M_Disabled > 0) return 1 + (rand() % M_Disabled);
-    } else if (locality == "Temple") {
-        if (spotType == "Compact" && T_Compact > 0) return 1 + (rand() % T_Compact);
-        else if (spotType == "Four-wheeler" && T_Four > 0) return 1 + (rand() % T_Four);
-        else if (spotType == "Large" && T_Large > 0) return 1 + (rand() % T_Large);
-        else if (spotType == "Electric" && T_Electric > 0) return 1 + (rand() % T_Electric);
-        else if (spotType == "Disabled" && T_Disabled > 0) return 1 + (rand() % T_Disabled);
-    } else if (locality == "Park") {
-        if (spotType == "Compact" && P_Compact > 0) return 1 + (rand() % P_Compact);
-        else if (spotType == "Four-wheeler" && P_Four > 0) return 1 + (rand() % P_Four);
-        else if (spotType == "Large" && P_Large > 0) return 1 + (rand() % P_Large);
-        else if (spotType == "Electric" && P_Electric > 0) return 1 + (rand() % P_Electric);
-        else if (spotType == "Disabled" && P_Disabled > 0) return 1 + (rand() % P_Disabled);
+int id(const string& spotType, const string& locality) {
+    try {
+        srand(static_cast<unsigned int>(time(0)));
+
+        if (locality == "Mall") {
+            if (spotType == "Compact" && M_Compact > 0) return 1 + (rand() % M_Compact);
+            else if (spotType == "Four-wheeler" && M_Four > 0) return 1 + (rand() % M_Four);
+            else if (spotType == "Large" && M_Large > 0) return 1 + (rand() % M_Large);
+            else if (spotType == "Electric" && M_Electric > 0) return 1 + (rand() % M_Electric);
+            else if (spotType == "Disabled" && M_Disabled > 0) return 1 + (rand() % M_Disabled);
+        } else if (locality == "Temple") {
+            if (spotType == "Compact" && T_Compact > 0) return 1 + (rand() % T_Compact);
+            else if (spotType == "Four-wheeler" && T_Four > 0) return 1 + (rand() % T_Four);
+            else if (spotType == "Large" && T_Large > 0) return 1 + (rand() % T_Large);
+            else if (spotType == "Electric" && T_Electric > 0) return 1 + (rand() % T_Electric);
+            else if (spotType == "Disabled" && T_Disabled > 0) return 1 + (rand() % T_Disabled);
+        } else if (locality == "Park") {
+            if (spotType == "Compact" && P_Compact > 0) return 1 + (rand() % P_Compact);
+            else if (spotType == "Four-wheeler" && P_Four > 0) return 1 + (rand() % P_Four);
+            else if (spotType == "Large" && P_Large > 0) return 1 + (rand() % P_Large);
+            else if (spotType == "Electric" && P_Electric > 0) return 1 + (rand() % P_Electric);
+            else if (spotType == "Disabled" && P_Disabled > 0) return 1 + (rand() % P_Disabled);
+        } else {
+            throw invalid_argument("Invalid locality provided.");
+        }
+
+        throw runtime_error("No available spots for the given type and locality.");
+    } catch (const exception& e) {
+        cerr << "Error in id: " << e.what() << endl;
+        return -1; 
     }
-    
-    // If no available spots are found, return -1 to indicate failure
-    return -1;
 }
 
 };
@@ -212,19 +237,27 @@ protected:
 
 public:
     void setCurrentTime() {
-        auto now = chrono::system_clock::now();
-        time_t currentTime = chrono::system_clock::to_time_t(now);
-        tm *localTime = localtime(&currentTime);
+        try {
+            auto now = chrono::system_clock::now();
+            time_t currentTime = chrono::system_clock::to_time_t(now);
+            tm *localTime = localtime(&currentTime);
 
-        year = 1900 + localTime->tm_year;
-        month = 1 + localTime->tm_mon;
-        day = localTime->tm_mday;
-        hour = localTime->tm_hour;
-        minute = localTime->tm_min;
-        second = localTime->tm_sec;
+            if (!localTime) {
+                throw runtime_error("Failed to retrieve local time.");
+            }
 
-        cout << "Current date: " << year << "-" << month << "-" << day << endl;
-        cout << "Current time: " << hour << ":" << minute << ":" << second << endl;
+            year = 1900 + localTime->tm_year;
+            month = 1 + localTime->tm_mon;
+            day = localTime->tm_mday;
+            hour = localTime->tm_hour;
+            minute = localTime->tm_min;
+            second = localTime->tm_sec;
+
+            cout << "Current date: " << year << "-" << month << "-" << day << endl;
+            cout << "Current time: " << hour << ":" << minute << ":" << second << endl;
+        } catch (const exception &e) {
+            cerr << "Error in setCurrentTime: " << e.what() << endl;
+        }
     }
 
     int getHour() const { return hour; }
@@ -232,10 +265,14 @@ public:
     int getMonth() const { return month; }
 
     void print() const {
-        cout << year << "-" << setw(2) << setfill('0') << month << "-"
-             << setw(2) << setfill('0') << day << " " << setw(2) << setfill('0')
-             << hour << ":" << setw(2) << setfill('0') << minute << ":"
-             << setw(2) << setfill('0') << second << endl;
+        try {
+            cout << year << "-" << setw(2) << setfill('0') << month << "-"
+                 << setw(2) << setfill('0') << day << " " << setw(2) << setfill('0')
+                 << hour << ":" << setw(2) << setfill('0') << minute << ":"
+                 << setw(2) << setfill('0') << second << endl;
+        } catch (const exception &e) {
+            cerr << "Error in print: " << e.what() << endl;
+        }
     }
 };
 
@@ -245,17 +282,25 @@ protected:
 
 public:
     Calculate(const Time &entry, const Time &exit) {
-        d_hour = exit.getHour() - entry.getHour();
-        d_day = exit.getDay() - entry.getDay();
-        d_month = exit.getMonth() - entry.getMonth();
+        try {
+            d_hour = exit.getHour() - entry.getHour();
+            d_day = exit.getDay() - entry.getDay();
+            d_month = exit.getMonth() - entry.getMonth();
 
-        if (d_hour < 0) {
-            d_hour += 24;
-            d_day--;
-        }
-        if (d_day < 0) {
-            d_day += 30;
-            d_month--;
+            if (d_hour < 0) {
+                d_hour += 24;
+                d_day--;
+            }
+            if (d_day < 0) {
+                d_day += 30;
+                d_month--;
+            }
+
+            if (d_month < 0) {
+                throw runtime_error("Exit time cannot be earlier than entry time.");
+            }
+        } catch (const exception &e) {
+            cerr << "Error in Calculate constructor: " << e.what() << endl;
         }
     }
 
@@ -264,9 +309,13 @@ public:
     int getMonthDiff() const { return d_month; }
 
     void print() const {
-        cout << "Hours: " << d_hour << endl;
-        cout << "Days: " << d_day << endl;
-        cout << "Months: " << d_month << endl;
+        try {
+            cout << "Hours: " << d_hour << endl;
+            cout << "Days: " << d_day << endl;
+            cout << "Months: " << d_month << endl;
+        } catch (const exception &e) {
+            cerr << "Error in print: " << e.what() << endl;
+        }
     }
 };
 
@@ -276,55 +325,75 @@ protected:
 
 public:
     Reserve_Time() {
-        vehicle_rates.push_back(make_pair("Two-wheeler", vector<int>{20, 450, 4500, 210}));
-        vehicle_rates.push_back(make_pair("Four-wheeler", vector<int>{30, 500, 5000, 210}));
-        vehicle_rates.push_back(make_pair("Bus/Other", vector<int>{35, 700, 7000, 210}));
+        try {
+            vehicle_rates.push_back(make_pair("Two-wheeler", vector<int>{20, 450, 4500, 210}));
+            vehicle_rates.push_back(make_pair("Four-wheeler", vector<int>{30, 500, 5000, 210}));
+            vehicle_rates.push_back(make_pair("Bus/Other", vector<int>{35, 700, 7000, 210}));
+        } catch (const exception &e) {
+            cerr << "Error in Reserve_Time constructor: " << e.what() << endl;
+        }
     }
 
     int price(int type, int h, int d, int &revenue) {
-        vector<int> rates;
-        switch (type) {
-        case 2:
-            rates = vehicle_rates[0].second;
-            break;
-        case 4:
-            rates = vehicle_rates[1].second;
-            break;
-        case 0:
-            rates = vehicle_rates[2].second;
-            break;
-        default:
-            throw invalid_argument("Invalid vehicle type entered.");
+        try {
+            vector<int> rates;
+
+            switch (type) {
+            case 2:
+                rates = vehicle_rates[0].second;
+                break;
+            case 4:
+                rates = vehicle_rates[1].second;
+                break;
+            case 0:
+                rates = vehicle_rates[2].second;
+                break;
+            default:
+                throw invalid_argument("Invalid vehicle type entered.");
+            }
+
+            ifstream rev("revenue.txt");
+            int t_price = 0;
+            if (rev) {
+                rev >> t_price;
+            } else if (!rev.eof()) {
+                throw runtime_error("Failed to read revenue file.");
+            }
+            rev.close();
+
+            int cost = 20 + h * rates[0] + d * rates[1];
+            revenue += cost;
+
+            ofstream revenueFile("revenue.txt", ios::trunc);
+            if (!revenueFile) {
+                throw runtime_error("Failed to write to revenue file.");
+            }
+            revenueFile << cost + t_price << endl;
+            revenueFile.close();
+
+            return cost;
+        } catch (const exception &e) {
+            cerr << "Error in price: " << e.what() << endl;
+            return -1; 
         }
-
-        ifstream rev("revenue.txt");
-        int t_price = 0;
-        if (rev) {
-            rev >> t_price;
-        }
-        rev.close();
-
-        int cost = 20+h * rates[0] + d * rates[1];
-        revenue += cost;
-
-        ofstream revenueFile("revenue.txt", ios::trunc);
-        revenueFile << cost + t_price << endl;
-        revenueFile.close();
-
-        return cost;
     }
 
     string getVehicleType(int type) const {
-        switch (type) {
-        case 2:
-            return "Two-wheeler";
-        case 4:
-            return "Four-wheeler";
-        case 3:
-            return "Electric Vehicle";
-        case 0:
-            return "Bus/Other";
-        default:
+        try {
+            switch (type) {
+            case 2:
+                return "Two-wheeler";
+            case 4:
+                return "Four-wheeler";
+            case 3:
+                return "Electric Vehicle";
+            case 0:
+                return "Bus/Other";
+            default:
+                throw invalid_argument("Invalid vehicle type.");
+            }
+        } catch (const exception &e) {
+            cerr << "Error in getVehicleType: " << e.what() << endl;
             return "Unknown";
         }
     }
@@ -339,34 +408,47 @@ class Note {
     vector<entry_note> entries;
 
 public:
-    void add_entry(const string& vehicle_no, const Time& time) {
-        entry_note new_entry;
-        new_entry.v_no = vehicle_no;
-        new_entry.entry_time = time;
+    void add_entry(const string &vehicle_no, const Time &time) {
+        try {
+            entry_note new_entry;
+            new_entry.v_no = vehicle_no;
+            new_entry.entry_time = time;
 
-        entries.push_back(new_entry);
+            entries.push_back(new_entry);
 
-        cout << "Entry added for vehicle: " << vehicle_no << endl;
+            cout << "Entry added for vehicle: " << vehicle_no << endl;
+        } catch (const exception &e) {
+            cerr << "Error in add_entry: " << e.what() << endl;
+        }
     }
 
-    Time get_entry_time(const string& vehicle_no) const {
-        for (const auto& entry : entries) {
-            if (entry.v_no == vehicle_no) {
-                return entry.entry_time;
+    Time get_entry_time(const string &vehicle_no) const {
+        try {
+            for (const auto &entry : entries) {
+                if (entry.v_no == vehicle_no) {
+                    return entry.entry_time;
+                }
             }
+            throw invalid_argument("Vehicle not found.");
+        } catch (const exception &e) {
+            cerr << "Error in get_entry_time: " << e.what() << endl;
+            throw; // Re-throwing the exception for the caller to handle
         }
-        throw invalid_argument("Vehicle not found.");
     }
 
     void display_entries() const {
-        if (entries.empty()) {
-            cout << "No entries to display!" << endl;
-            return;
-        }
+        try {
+            if (entries.empty()) {
+                cout << "No entries to display!" << endl;
+                return;
+            }
 
-        for (const auto& entry : entries) {
-            cout << "Vehicle No: " << entry.v_no << " | Entry time: ";
-            entry.entry_time.print();
+            for (const auto &entry : entries) {
+                cout << "Vehicle No: " << entry.v_no << " | Entry time: ";
+                entry.entry_time.print();
+            }
+        } catch (const exception &e) {
+            cerr << "Error in display_entries: " << e.what() << endl;
         }
     }
 };
@@ -382,20 +464,24 @@ class Receipt {
     string location;  // Added location field
 
 public:
-    Receipt(const string& vNo, const string& vType, int h, int d, int cost, int sID, int rNo, const string& loc)
-        : vehicleNo(vNo), vehicleType(vType), hours(h), days(d), totalCost(cost), 
+    Receipt(const string &vNo, const string &vType, int h, int d, int cost, int sID, int rNo, const string &loc)
+        : vehicleNo(vNo), vehicleType(vType), hours(h), days(d), totalCost(cost),
           spotID(sID), referenceNo(rNo), location(loc) {}
 
     void printReceipt() const {
-        cout << "\n********** RECEIPT **********\n";
-        cout << "Vehicle No: " << vehicleNo << endl;
-        cout << "Vehicle Type: " << vehicleType << endl;
-        cout << "Location: " << location << endl;  // Added location printing
-        cout << "Parking Spot ID: " << spotID << endl;
-        cout << "Reference Number: " << referenceNo << endl;
-        cout << "Total Time: " << days << " days and " << hours << " hours\n";
-        cout << "Total Cost: Rs. " << totalCost << endl;
-        cout << "****************************\n";
+        try {
+            cout << "\n********** RECEIPT **********\n";
+            cout << "Vehicle No: " << vehicleNo << endl;
+            cout << "Vehicle Type: " << vehicleType << endl;
+            cout << "Location: " << location << endl;
+            cout << "Parking Spot ID: " << spotID << endl;
+            cout << "Reference Number: " << referenceNo << endl;
+            cout << "Total Time: " << days << " days and " << hours << " hours\n";
+            cout << "Total Cost: Rs. " << totalCost << endl;
+            cout << "****************************\n";
+        } catch (const exception &e) {
+            cerr << "Error in printReceipt: " << e.what() << endl;
+        }
     }
 };
 
@@ -407,55 +493,97 @@ class U_login {
 
 public:
     string loc;
+
     U_login() {
-        cout << "Enter your name: ";
-        getline(cin, name);
-        cout << "Enter your mobile number: ";
-        cin >> mobile;
-        cin.ignore();
-        cout << "Enter your vehicle number: ";
-        getline(cin, vno);
-        cout << "1. Two-wheeler\n2. Four-wheeler\n3. Bus/Other\nEnter your vehicle type: ";
-        cin >> v_type;
-        cin.ignore();
-        cout << "1. Temple\n2. Mall\n3. Park\nEnter your parking location choice: ";
-        cin >> pc;
-        switch(pc){
-            case 1:
-                loc="Mall";
-                break;
-            case 2:
-                loc="Temple";
-                break;
-            case 3:
-                loc="Park";
-                break;
+        try {
+            cout << "Enter your name: ";
+            getline(cin, name);
+
+            cout << "Enter your mobile number: ";
+            cin >> mobile;
+            if (cin.fail() || mobile < 1000000000 || mobile > 9999999999) {
+                throw invalid_argument("Invalid mobile number entered.");
+            }
+            cin.ignore();
+
+            cout << "Enter your vehicle number: ";
+            getline(cin, vno);
+
+            cout << "1. Two-wheeler\n2. Four-wheeler\n3. Bus/Other\nEnter your vehicle type: ";
+            cin >> v_type;
+            if (v_type < 1 || v_type > 3) {
+                throw invalid_argument("Invalid vehicle type entered.");
+            }
+            cin.ignore();
+
+            cout << "1. Temple\n2. Mall\n3. Park\nEnter your parking location choice: ";
+            cin >> pc;
+            if (pc < 1 || pc > 3) {
+                throw invalid_argument("Invalid parking location choice entered.");
+            }
+            cin.ignore();
+
+            switch (pc) {
+                case 1:
+                    loc = "Temple";
+                    break;
+                case 2:
+                    loc = "Mall";
+                    break;
+                case 3:
+                    loc = "Park";
+                    break;
+            }
+        } catch (const exception &e) {
+            cerr << "Error in U_login constructor: " << e.what() << endl;
         }
-        cin.ignore();
     }
 
     int getVehicleType() const {
-        switch (v_type) {
-            case 1: return 2;  // Two-wheeler
-            case 2: return 4;  // Four-wheeler
-            case 3: return 0;  // Bus/Other
-            default: return -1;  // Invalid type
+        try {
+            switch (v_type) {
+                case 1: return 2;  // Two-wheeler
+                case 2: return 4;  // Four-wheeler
+                case 3: return 0;  // Bus/Other
+                default:
+                    throw invalid_argument("Invalid vehicle type.");
+            }
+        } catch (const exception &e) {
+            cerr << "Error in getVehicleType: " << e.what() << endl;
+            return -1; 
         }
     }
 
     string getLocation() const {
-        switch (pc) {
-            case 1: return "Temple";
-            case 2: return "Mall";
-            case 3: return "Park";
-            default: return "Unknown";
+        try {
+            switch (pc) {
+                case 1: return "Temple";
+                case 2: return "Mall";
+                case 3: return "Park";
+                default:
+                    throw invalid_argument("Invalid parking location.");
+            }
+        } catch (const exception &e) {
+            cerr << "Error in getLocation: " << e.what() << endl;
+            return "Unknown";
         }
     }
 
-    string getVehicleNo() const { return vno; }
+    string getVehicleNo() const {
+        try {
+            return vno;
+        } catch (const exception &e) {
+            cerr << "Error in getVehicleNo: " << e.what() << endl;
+            return "";
+        }
+    }
 
     void printDetails() const {
-        cout << "\nUser: " << name << " | Mobile: " << mobile << " | Vehicle No: " << vno << "\n";
+        try {
+            cout << "\nUser: " << name << " | Mobile: " << mobile << " | Vehicle No: " << vno << "\n";
+        } catch (const exception &e) {
+            cerr << "Error in printDetails: " << e.what() << endl;
+        }
     }
 };
 
@@ -465,96 +593,135 @@ class O_login {
     int v_type, pc;  // Vehicle type and parking choice
     char temp[10];
     char c;
-    
+
 public:
     O_login() {
-        bool a=true;
-        ifstream passwordFile("password.txt");
-        getline(passwordFile, stored);
-        passwordFile.close();
-        while(a){
-        cout << "Enter the password: ";
-        int i;
-        for (i = 0; i < 9; i++) {
-            c = getch();
-            if (c == 13) {
-                break;
-            } else if (c == 8) {
-                if (i > 0) {
-                    --i;
-                    cout << "\b \b";
-                    --i; 
-                } else {
-                    --i;
-                }
-            } else {
-                cout << "*";
-                temp[i] = c;
+        try {
+            ifstream passwordFile("password.txt");
+            if (!passwordFile) {
+                throw runtime_error("Password file could not be opened.");
             }
-        }
-        temp[i] = '\0';
+            getline(passwordFile, stored);
+            passwordFile.close();
 
-        if (stored == temp) {
-            cout << "\nLogin Sucessful\n";
-            a=false;
-        } else {
-            cout << "Incorrect password. Try again.\n";
-        }
+            bool a = true;
+            while (a) {
+                cout << "Enter the password: ";
+                int i;
+                for (i = 0; i < 9; i++) {
+                    c = getch();
+                    if (c == 13) {  // Enter key
+                        break;
+                    } else if (c == 8) {  // Backspace key
+                        if (i > 0) {
+                            --i;
+                            cout << "\b \b";
+                            --i;
+                        } else {
+                            --i;
+                        }
+                    } else {
+                        cout << "*";
+                        temp[i] = c;
+                    }
+                }
+                temp[i] = '\0';
+
+                if (stored == temp) {
+                    cout << "\nLogin Successful\n";
+                    a = false;
+                } else {
+                    cout << "\nIncorrect password. Try again.\n";
+                }
+            }
+        } catch (const exception& e) {
+            cerr << "Error in O_login: " << e.what() << endl;
         }
     }
 
     int getVehicleType() const {
-    switch (v_type) {
-        case 1: return 2;  // Two-wheeler
-        case 2: return 4;  // Four-wheeler
-        case 3: return 3;  // Electric
-        case 4: return 0;  // Others
-        default: return -1;  // Invalid type
+        try {
+            switch (v_type) {
+                case 1: return 2;  // Two-wheeler
+                case 2: return 4;  // Four-wheeler
+                case 3: return 3;  // Electric
+                case 4: return 0;  // Others
+                default: throw invalid_argument("Invalid vehicle type selected.");
+            }
+        } catch (const exception& e) {
+            cerr << "Error in getVehicleType: " << e.what() << endl;
+            return -1;  
+        }
     }
-}
-
 
     int loadTotalRevenue() {
-        ifstream revenueFile("revenue.txt");
-        int revenue = 0;
-        if (revenueFile) {
+        try {
+            ifstream revenueFile("revenue.txt");
+            if (!revenueFile) {
+                throw runtime_error("Revenue file could not be opened.");
+            }
+            int revenue = 0;
             revenueFile >> revenue;
+            revenueFile.close();
+            return revenue;
+        } catch (const exception& e) {
+            cerr << "Error in loadTotalRevenue: " << e.what() << endl;
+            return 0;  
         }
-        revenueFile.close();
-        return revenue;
     }
 
-    string getVehicleNo() const { return vno; }
+    string getVehicleNo() const {
+        try {
+            return vno;
+        } catch (const exception& e) {
+            cerr << "Error in getVehicleNo: " << e.what() << endl;
+            return "";
+        }
+    }
 
     void displayAvailableSpots(const vector<unique_ptr<parkingspot>>& spots) {
-    cout << "\nAvailable Parking Spots:\n";
-    for (const auto& spot : spots) {
-        if (spot->check_availability()) {
-            spot->printdetails();
-            cout << "-------------------------\n";
+        try {
+            cout << "\nAvailable Parking Spots:\n";
+            for (const auto& spot : spots) {
+                if (spot->check_availability()) {
+                    spot->printdetails();
+                    cout << "-------------------------\n";
+                }
+            }
+        } catch (const exception& e) {
+            cerr << "Error in displayAvailableSpots: " << e.what() << endl;
         }
     }
-}
 };
 
 class O_book : public O_login {
 private:
     string getLocation(int choice) {
-        switch (choice) {
-            case 1: return "Temple";
-            case 2: return "Mall";
-            case 3: return "Park";
-            default: return "Unknown";
+        try {
+            switch (choice) {
+                case 1: return "Temple";
+                case 2: return "Mall";
+                case 3: return "Park";
+                default: throw invalid_argument("Invalid parking location choice.");
+            }
+        } catch (const exception& e) {
+            cerr << "Error in getLocation: " << e.what() << endl;
+            return "Unknown";
         }
     }
 
     string getVehicleTypeString(int choice) {
-        switch (choice) {
-            case 1: return "Two-wheeler";
-            case 2: return "Four-wheeler";
-            case 3: return "Electric";
-            case 4: return "Bus/Other";
-            default: return "Unknown";
+        try {
+            switch (choice) {
+                case 1: return "Two-wheeler";
+                case 2: return "Four-wheeler";
+                case 3: return "Electric";
+                case 4: return "Bus/Other";
+                default: throw invalid_argument("Invalid vehicle type choice.");
+            }
+        } catch (const exception& e) {
+            cerr << "Error in getVehicleTypeString: " << e.what() << endl;
+            return "Unknown";
         }
     }
 
@@ -565,37 +732,56 @@ public:
     string selectedVehicleType;
 
     O_book(vector<unique_ptr<parkingspot>>& spots, avail& AVAILABLE) {
-        int locationChoice;
-        cout << "1. Temple\n2. Mall\n3. Park\nEnter parking location choice: ";
-        cin >> locationChoice;
-        selectedLocation = getLocation(locationChoice);
+        try {
+            int locationChoice;
+    
+            cout << "1. Temple\n2. Mall\n3. Park\nEnter parking location choice: ";
+            cin >> locationChoice;
+            selectedLocation = getLocation(locationChoice);
 
-        int vehicleTypeChoice;
-        cout << "1. Two-wheeler\n2. Four-wheeler\n3. Electric\n4. Bus/Other\nEnter vehicle type: ";
-        cin >> vehicleTypeChoice;
-        selectedVehicleType = getVehicleTypeString(vehicleTypeChoice);
+            int vehicleTypeChoice;
+            cout << "1. Two-wheeler\n2. Four-wheeler\n3. Electric\n4. Bus/Other\nEnter vehicle type: ";
+            cin >> vehicleTypeChoice;
+            selectedVehicleType = getVehicleTypeString(vehicleTypeChoice);
 
-        cout << "Enter number of days: ";
-        cin >> day;
-        cout << "Enter number of hours: ";
-        cin >> hour;
-        cout << "Enter vehicle number: ";
-        cin >> vehicle;
+            cout << "Enter number of days: ";
+            cin >> day;
+            if (day < 0) {
+                throw invalid_argument("Number of days cannot be negative.");
+            }
 
-        cout << "\nAvailable Parking Spots at " << selectedLocation << " for " << selectedVehicleType << ":\n";
-        bool spotsFound = false;
-        
-        // Display available spots suitable for the vehicle type
-        
-        
+            cout << "Enter number of hours: ";
+            cin >> hour;
+            if (hour < 0) {
+                throw invalid_argument("Number of hours cannot be negative.");
+            }
+
+            cout << "Enter vehicle number: ";
+            cin >> vehicle;
+
+            cout << "\nAvailable Parking Spots at " << selectedLocation << " for " << selectedVehicleType << ":\n";
+            bool spotsFound = false;
+        } catch (const exception& e) {
+            cerr << "Error in O_book constructor: " << e.what() << endl;
+        }
     }
 
     int amt() {
-        int price = hour * 40 + day * 1000;
-        int t_price = loadTotalRevenue();
-        ofstream revenueFile("revenue.txt", ios::trunc);
-        revenueFile << price + t_price << endl;
-        revenueFile.close();
-        return price;
+        try {
+            int price = hour * 40 + day * 1000;
+            int t_price = loadTotalRevenue();
+
+            ofstream revenueFile("revenue.txt", ios::trunc);
+            if (!revenueFile) {
+                throw runtime_error("Revenue file could not be opened.");
+            }
+            revenueFile << price + t_price << endl;
+            revenueFile.close();
+
+            return price;
+        } catch (const exception& e) {
+            cerr << "Error in amt: " << e.what() << endl;
+            return 0;  // Return 0 in case of errors
+        }
     }
 };
