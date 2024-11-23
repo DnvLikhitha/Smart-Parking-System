@@ -385,7 +385,6 @@ public:
     string getVehicleType(int type) const {
         try {
             switch (type) {
-                cout<<"\n1\t"<<type<<endl;
             case 2:
                 return "Two-wheeler";
             case 4:
@@ -727,7 +726,6 @@ private:
     string getVehicleTypeString(int choice) {
         try {
             switch (choice) {
-                cout<<"\n2\t"<<choice<<endl;
                 case 1: return "Compact";       // Two-wheeler
                 case 2: return "Four";          // Four-wheeler
                 case 3: return "electric";      // electric vehicle
