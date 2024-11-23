@@ -13,6 +13,7 @@
 #include <memory>
 #include <random>
 #include <cstring>
+#include "change_spot.cpp"
 #undef small
 using namespace std;
 using namespace std::chrono;
@@ -95,7 +96,9 @@ public:
             
             ifstream inFile("spots.txt");
             if (!inFile) {
-                throw runtime_error("Unable to open spots configuration file.");
+                Spot_change reg;
+                reg.update_spot();
+                cout << "No previous spot data found. Starting fresh.\n";
             }
 
             int spotId;
@@ -786,6 +789,8 @@ public:
         }
     }
 
+    /// @brief 
+    /// @return 
     int amt() {
         try {
             int price = hour * 40 + day * 1000;
