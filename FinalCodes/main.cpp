@@ -1,15 +1,15 @@
 #include "merged.cpp"
 #include "change_password.cpp"
-#include "change_spot.cpp"
 
 void loadSpotsFromFile(vector<unique_ptr<parkingspot>>& spots) {
     try {
         spots.clear();
         ifstream inFile("spots.txt");
         if (!inFile) {
-            cerr << "No previous spot data found. Starting fresh.\n";
             Spot_change reg;
             reg.update_spot();
+            cout << "No previous spot data found. Starting fresh.\n";
+            
             return;
         }
         int spotId;
@@ -152,7 +152,7 @@ int main() {
                         int t;
                         bool active = true;
                         while (active) {
-                            cout << "\n1. Book\n2. Revenue\n3. Availability\n4. Change Password\nChange Spot details\n6. EXIT\nWhat do you want to do: ";
+                            cout << "\n1. Book\n2. Revenue\n3. Availability\n4. Change Password\n5. Change Spot details\n6. EXIT\nWhat do you want to do: ";
                             cin >> t;
 
                             if (cin.fail()) {
