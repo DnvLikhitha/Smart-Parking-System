@@ -1,26 +1,16 @@
 #include "merged.cpp"
 #include "change_password.cpp"
-
-void saveSpotsToFile(const vector<unique_ptr<parkingspot>>& spots) {
-    try {
-        ofstream outFile("spots.txt");
-        if (!outFile.is_open()) {
-            throw runtime_error("Error opening spots.txt for writing.");
-        }
-        for (const auto& spot : spots) {
-            outFile << spot->getSpotid() << " " << spot->spotType << " " << spot->locality << endl;
-        }
-        outFile.close();
-    } catch (const exception& e) {
-        cerr << "Error: " << e.what() << endl;
-    }
-}
+#include "change_spot.cpp"
 
 void loadSpotsFromFile(vector<unique_ptr<parkingspot>>& spots) {
     try {
+        spots.clear();
         ifstream inFile("spots.txt");
-        if (!inFile.is_open()) {
-            throw runtime_error("Error opening spots.txt for reading.");
+        if (!inFile) {
+            cerr << "No previous spot data found. Starting fresh.\n";
+            Spot_change reg;
+            reg.update_spot();
+            return;
         }
         int spotId;
         string type, locality;
@@ -38,7 +28,7 @@ void loadSpotsFromFile(vector<unique_ptr<parkingspot>>& spots) {
                 spots.push_back(make_unique<disabled>(spotId, locality));
             }
         }
-        inFile.close();
+        cout<<"\nFetch data from file sucessfully"<<endl;
     } catch (const exception& e) {
         cerr << "Error: " << e.what() << endl;
     }
@@ -84,7 +74,7 @@ int main() {
                             throw invalid_argument("Invalid spot choice.");
                         }
 
-                        U_login user;
+                        U_login user(spots);
                         Time entry;
                         entry.setCurrentTime();
                         parkingNote.add_entry(user.getVehicleNo(), entry);
@@ -95,7 +85,7 @@ int main() {
                                 spotPreference = "Regular";
                                 break;
                             case 2:
-                                spotPreference = "Electric";
+                                spotPreference = "electric";
                                 break;
                             case 3:
                                 spotPreference = "Disabled";
@@ -110,8 +100,8 @@ int main() {
 
                         for (auto& spot : spots) {
                             if (spot->check_availability()) {
-                                if (spotPreference == "Electric" && spot->spotType == "Electric" && spot->isSuitable(vehicleType)) {
-                                    spot->reservation(vehicleType);
+                                if (spotPreference == "electric" && spot->spotType == "electric") {
+                                    spot->reservation(vehicleType,true);
                                     assignedSpotID = spot->getSpotid();
                                     spotFound = true;
                                     break;
@@ -121,7 +111,7 @@ int main() {
                                     spotFound = true;
                                     break;
                                 } else if (spotPreference == "Regular" && spot->isSuitable(vehicleType) && 
-                                        spot->spotType != "Electric" && spot->spotType != "Disabled") {
+                                        spot->spotType != "electric" && spot->spotType != "Disabled") {
                                     spot->reservation(vehicleType);
                                     assignedSpotID = spot->getSpotid();
                                     spotFound = true;
@@ -135,7 +125,6 @@ int main() {
                         } else {
                             srand(static_cast<unsigned int>(time(0)));
                             int referenceNumber = rand() % 100000 + 1;
-
                             cout << "\nAfter parking is complete, press any key to exit.\n";
                             system("pause");
 
@@ -156,7 +145,6 @@ int main() {
                     cout << "Parking spot not open for booking!\n";
                 }
             } else if (userType == 2) {
-                // Owner login logic with exception handling
                 try {
                     O_login owner;
                     avail AVAILABLE(spots);
@@ -164,7 +152,7 @@ int main() {
                         int t;
                         bool active = true;
                         while (active) {
-                            cout << "\n1. Book\n2. Revenue\n3. Availability\n4. Change Password\n5. EXIT\nWhat do you want to do: ";
+                            cout << "\n1. Book\n2. Revenue\n3. Availability\n4. Change Password\nChange Spot details\n6. EXIT\nWhat do you want to do: ";
                             cin >> t;
 
                             if (cin.fail()) {
@@ -208,7 +196,14 @@ int main() {
                                 case 4:
                                     change_pass.update();
                                     break;
-                                case 5:
+                                case 5:{
+                                    Spot_change reg;
+                                    reg.update_spot();
+                                    loadSpotsFromFile(spots);
+                                    avail AVAILABLE(spots);
+                                    break;
+                                    }
+                                case 6:
                                     active = false;
                                     break;
                                 default:
