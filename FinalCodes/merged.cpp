@@ -16,9 +16,8 @@
 #undef small
 using namespace std;
 using namespace std::chrono;
-
 bool value = false;
-
+class avail;
 class parkingspot {
 protected:
     int id;
@@ -48,6 +47,7 @@ public:
             throw runtime_error("Spot not suitable for the vehicle type.");
         }
         cout << "Booking spot for " << id << ": ";
+        
     }
 };
 
@@ -71,8 +71,8 @@ public:
 
 class electric : public parkingspot {
 public:
-    electric(int spotid, string place) : parkingspot(spotid, "Electric", place) {}
-    bool isSuitable(string Vtype, bool disabledAnswer = false) override { return Vtype == "Electric"; }
+    electric(int spotid, string place) : parkingspot(spotid, "electric", place) {}
+    bool isSuitable(string Vtype, bool disabledAnswer) override { return disabledAnswer; }
 };
 
 class disabled : public parkingspot {
@@ -82,13 +82,17 @@ public:
 };
 
 class avail {
+            
 public:
-    int M_Compact, M_Four, M_Large, M_Electric, M_Disabled;
-    int T_Compact, T_Four, T_Large, T_Electric, T_Disabled;
-    int P_Compact, P_Four, P_Large, P_Electric, P_Disabled;
-
+    
+            int M_Compact, M_Four, M_Large, M_electric, M_Disabled;
+            int T_Compact, T_Four, T_Large, T_electric, T_Disabled;
+            int P_Compact, P_Four, P_Large, P_electric, P_Disabled;
+    avail(){}
     avail(vector<unique_ptr<parkingspot>>& spots) {
         try {
+            
+            
             ifstream inFile("spots.txt");
             if (!inFile) {
                 throw runtime_error("Unable to open spots configuration file.");
@@ -97,9 +101,9 @@ public:
             int spotId;
             string type, locality;
 
-            M_Compact = M_Four = M_Large = M_Electric = M_Disabled = 0;
-            T_Compact = T_Four = T_Large = T_Electric = T_Disabled = 0;
-            P_Compact = P_Four = P_Large = P_Electric = P_Disabled = 0;
+            M_Compact = M_Four = M_Large = M_electric = M_Disabled = 0;
+            T_Compact = T_Four = T_Large = T_electric = T_Disabled = 0;
+            P_Compact = P_Four = P_Large = P_electric = P_Disabled = 0;
 
             while (inFile >> spotId >> type >> locality) {
                 try {
@@ -119,9 +123,9 @@ public:
                         if (locality == "Park") P_Large++;
                         spots.push_back(make_unique<large>(spotId, locality));
                     } else if (type == "electric") {
-                        if (locality == "Mall") M_Electric++;
-                        if (locality == "Temple") T_Electric++;
-                        if (locality == "Park") P_Electric++;
+                        if (locality == "Mall") M_electric++;
+                        if (locality == "Temple") T_electric++;
+                        if (locality == "Park") P_electric++;
                         spots.push_back(make_unique<electric>(spotId, locality));
                     } else if (type == "disabled") {
                         if (locality == "Mall") M_Disabled++;
@@ -147,21 +151,21 @@ public:
             if (spotType == "Compact" && M_Compact > 0) M_Compact--;
             else if (spotType == "Four" && M_Four > 0) M_Four--;
             else if (spotType == "Large" && M_Large > 0) M_Large--;
-            else if (spotType == "Electric" && M_Electric > 0) M_Electric--;
+            else if (spotType == "electric" && M_electric > 0) M_electric--;
             else if (spotType == "Disabled" && M_Disabled > 0) M_Disabled--;
             else throw runtime_error("Invalid decrement request for Mall.");
         } else if (locality == "Temple") {
             if (spotType == "Compact" && T_Compact > 0) T_Compact--;
             else if (spotType == "Four" && T_Four > 0) T_Four--;
             else if (spotType == "Large" && T_Large > 0) T_Large--;
-            else if (spotType == "Electric" && T_Electric > 0) T_Electric--;
+            else if (spotType == "electric" && T_electric > 0) T_electric--;
             else if (spotType == "Disabled" && T_Disabled > 0) T_Disabled--;
             else throw runtime_error("Invalid decrement request for Temple.");
         } else if (locality == "Park") {
             if (spotType == "Compact" && P_Compact > 0) P_Compact--;
             else if (spotType == "Four" && P_Four > 0) P_Four--;
             else if (spotType == "Large" && P_Large > 0) P_Large--;
-            else if (spotType == "Electric" && P_Electric > 0) P_Electric--;
+            else if (spotType == "electric" && P_electric > 0) P_electric--;
             else if (spotType == "Disabled" && P_Disabled > 0) P_Disabled--;
             else throw runtime_error("Invalid decrement request for Park.");
         } else {
@@ -178,17 +182,17 @@ void check() const {
         cout << "\n-------------------------";
         cout << "\nMall Parking details: " << endl;
         cout << "2 Wheelers: " << M_Compact << "\n4 Wheelers: " << M_Four
-             << "\nLarge: " << M_Large << "\nElectric: " << M_Electric
+             << "\nLarge: " << M_Large << "\nelectric: " << M_electric
              << "\nDisabled: " << M_Disabled;
         cout << "\n-------------------------";
         cout << "\nPark Parking details: " << endl;
         cout << "2 Wheelers: " << P_Compact << "\n4 Wheelers: " << P_Four
-             << "\nLarge: " << P_Large << "\nElectric: " << P_Electric
+             << "\nLarge: " << P_Large << "\nelectric: " << P_electric
              << "\nDisabled: " << P_Disabled;
         cout << "\n-------------------------";
         cout << "\nTemple Parking details: " << endl;
         cout << "2 Wheelers: " << T_Compact << "\n4 Wheelers: " << T_Four
-             << "\nLarge: " << T_Large << "\nElectric: " << T_Electric
+             << "\nLarge: " << T_Large << "\nelectric: " << T_electric
              << "\nDisabled: " << T_Disabled;
         cout << "\n-------------------------\n\n\n";
     } catch (const exception& e) {
@@ -204,19 +208,19 @@ int id(const string& spotType, const string& locality) {
             if (spotType == "Compact" && M_Compact > 0) return 1 + (rand() % M_Compact);
             else if (spotType == "Four-wheeler" && M_Four > 0) return 1 + (rand() % M_Four);
             else if (spotType == "Large" && M_Large > 0) return 1 + (rand() % M_Large);
-            else if (spotType == "Electric" && M_Electric > 0) return 1 + (rand() % M_Electric);
+            else if (spotType == "electric" && M_electric > 0) return 1 + (rand() % M_electric);
             else if (spotType == "Disabled" && M_Disabled > 0) return 1 + (rand() % M_Disabled);
         } else if (locality == "Temple") {
             if (spotType == "Compact" && T_Compact > 0) return 1 + (rand() % T_Compact);
             else if (spotType == "Four-wheeler" && T_Four > 0) return 1 + (rand() % T_Four);
             else if (spotType == "Large" && T_Large > 0) return 1 + (rand() % T_Large);
-            else if (spotType == "Electric" && T_Electric > 0) return 1 + (rand() % T_Electric);
+            else if (spotType == "electric" && T_electric > 0) return 1 + (rand() % T_electric);
             else if (spotType == "Disabled" && T_Disabled > 0) return 1 + (rand() % T_Disabled);
         } else if (locality == "Park") {
             if (spotType == "Compact" && P_Compact > 0) return 1 + (rand() % P_Compact);
             else if (spotType == "Four-wheeler" && P_Four > 0) return 1 + (rand() % P_Four);
             else if (spotType == "Large" && P_Large > 0) return 1 + (rand() % P_Large);
-            else if (spotType == "Electric" && P_Electric > 0) return 1 + (rand() % P_Electric);
+            else if (spotType == "electric" && P_electric > 0) return 1 + (rand() % P_electric);
             else if (spotType == "Disabled" && P_Disabled > 0) return 1 + (rand() % P_Disabled);
         } else {
             throw invalid_argument("Invalid locality provided.");
@@ -381,12 +385,11 @@ public:
     string getVehicleType(int type) const {
         try {
             switch (type) {
+                cout<<"\n1\t"<<type<<endl;
             case 2:
                 return "Two-wheeler";
             case 4:
                 return "Four-wheeler";
-            case 3:
-                return "Electric Vehicle";
             case 0:
                 return "Bus/Other";
             default:
@@ -485,7 +488,7 @@ public:
     }
 };
 
-class U_login {
+class U_login : public avail {
     string name;
     string vno;  // Vehicle number
     int v_type, pc;  // Vehicle type and parking choice
@@ -494,7 +497,7 @@ class U_login {
 public:
     string loc;
 
-    U_login() {
+    U_login(vector<unique_ptr<parkingspot>>& spots) : avail(spots) {
         try {
             cout << "Enter your name: ";
             getline(cin, name);
@@ -523,36 +526,47 @@ public:
             }
             cin.ignore();
 
+            // Determine location
             switch (pc) {
-                case 1:
-                    loc = "Temple";
-                    break;
-                case 2:
-                    loc = "Mall";
-                    break;
-                case 3:
-                    loc = "Park";
-                    break;
+                case 1: loc = "Temple"; break;
+                case 2: loc = "Mall"; break;
+                case 3: loc = "Park"; break;
             }
-        } catch (const exception &e) {
+
+            // Determine vehicle type string
+            string vehicleType;
+            switch (v_type) {
+                case 1: vehicleType = "Compact"; break;
+                case 2: vehicleType = "Four"; break;
+                case 3: vehicleType = "Large"; break;
+                default:
+                    throw invalid_argument("Invalid vehicle type.");
+            }
+
+            // Decrement the count for the selected spot type and locality
+            decrementAvailableCount(vehicleType, loc);
+
+            cout << "Booking successful! Spot type: " << vehicleType << ", Location: " << loc << endl;
+        } catch (const exception& e) {
             cerr << "Error in U_login constructor: " << e.what() << endl;
         }
     }
 
-    int getVehicleType() const {
+        int getVehicleType() const {
         try {
             switch (v_type) {
                 case 1: return 2;  // Two-wheeler
                 case 2: return 4;  // Four-wheeler
-                case 3: return 0;  // Bus/Other
+                case 4: return 0;  // Bus/Other
                 default:
                     throw invalid_argument("Invalid vehicle type.");
             }
-        } catch (const exception &e) {
+        } catch (const exception& e) {
             cerr << "Error in getVehicleType: " << e.what() << endl;
             return -1; 
         }
     }
+
 
     string getLocation() const {
         try {
@@ -563,7 +577,7 @@ public:
                 default:
                     throw invalid_argument("Invalid parking location.");
             }
-        } catch (const exception &e) {
+        } catch (const exception& e) {
             cerr << "Error in getLocation: " << e.what() << endl;
             return "Unknown";
         }
@@ -572,7 +586,7 @@ public:
     string getVehicleNo() const {
         try {
             return vno;
-        } catch (const exception &e) {
+        } catch (const exception& e) {
             cerr << "Error in getVehicleNo: " << e.what() << endl;
             return "";
         }
@@ -581,11 +595,12 @@ public:
     void printDetails() const {
         try {
             cout << "\nUser: " << name << " | Mobile: " << mobile << " | Vehicle No: " << vno << "\n";
-        } catch (const exception &e) {
+        } catch (const exception& e) {
             cerr << "Error in printDetails: " << e.what() << endl;
         }
     }
 };
+
 
 class O_login {
     string stored, entered;
@@ -644,7 +659,6 @@ public:
             switch (v_type) {
                 case 1: return 2;  // Two-wheeler
                 case 2: return 4;  // Four-wheeler
-                case 3: return 3;  // Electric
                 case 4: return 0;  // Others
                 default: throw invalid_argument("Invalid vehicle type selected.");
             }
@@ -713,10 +727,11 @@ private:
     string getVehicleTypeString(int choice) {
         try {
             switch (choice) {
-                case 1: return "Two-wheeler";
-                case 2: return "Four-wheeler";
-                case 3: return "Electric";
-                case 4: return "Bus/Other";
+                cout<<"\n2\t"<<choice<<endl;
+                case 1: return "Compact";       // Two-wheeler
+                case 2: return "Four";          // Four-wheeler
+                case 3: return "electric";      // electric vehicle
+                case 4: return "Large";         // Bus/Other
                 default: throw invalid_argument("Invalid vehicle type choice.");
             }
         } catch (const exception& e) {
@@ -734,13 +749,13 @@ public:
     O_book(vector<unique_ptr<parkingspot>>& spots, avail& AVAILABLE) {
         try {
             int locationChoice;
-    
+
             cout << "1. Temple\n2. Mall\n3. Park\nEnter parking location choice: ";
             cin >> locationChoice;
             selectedLocation = getLocation(locationChoice);
 
             int vehicleTypeChoice;
-            cout << "1. Two-wheeler\n2. Four-wheeler\n3. Electric\n4. Bus/Other\nEnter vehicle type: ";
+            cout << "1. Two-wheeler\n2. Four-wheeler\n3. electric\n4. Bus/Other\nEnter vehicle type: ";
             cin >> vehicleTypeChoice;
             selectedVehicleType = getVehicleTypeString(vehicleTypeChoice);
 
@@ -759,8 +774,15 @@ public:
             cout << "Enter vehicle number: ";
             cin >> vehicle;
 
-            cout << "\nAvailable Parking Spots at " << selectedLocation << " for " << selectedVehicleType << ":\n";
-            bool spotsFound = false;
+            cout << "\nProcessing your booking for " << selectedVehicleType
+                 << " at " << selectedLocation << "...\n";
+
+            // Decrement the available parking spots for the selected type and location
+            AVAILABLE.decrementAvailableCount(selectedVehicleType, selectedLocation);
+
+            cout << "Booking successful! Spot reserved.\n";
+            cout << "\nUpdated Parking Spot Availability:\n";
+            AVAILABLE.check();
         } catch (const exception& e) {
             cerr << "Error in O_book constructor: " << e.what() << endl;
         }
